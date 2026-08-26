@@ -1,0 +1,688 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PromptCraft AI — Image & Video Prompts</title>
+<meta name="description" content="PromptCraft AI — a free library of AI image and video prompts.">
+<style>
+*{box-sizing:border-box} body{margin:0;font-family:Inter,system-ui,Arial;background:#070b14;color:#f5f7ff}
+header{padding:22px 6%;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #1b2435;position:sticky;top:0;background:#070b14ee;backdrop-filter:blur(12px);z-index:5}
+.logo{font-size:24px;font-weight:800} .logo span{color:#8b7cff}
+nav button,.pill,.copy{border:1px solid #2a3550;background:#101728;color:#fff;border-radius:12px;padding:10px 14px;cursor:pointer}
+.hero{padding:75px 6% 45px;text-align:center;max-width:1050px;margin:auto}
+.hero h1{font-size:clamp(42px,8vw,78px);line-height:1;margin:0 0 20px}
+.gradient{background:linear-gradient(90deg,#fff,#9b8cff,#62d8ff);-webkit-background-clip:text;color:transparent}
+.hero p{color:#aeb8ca;font-size:18px;max-width:700px;margin:0 auto 28px}
+.search{width:min(720px,100%);padding:17px 20px;border-radius:16px;border:1px solid #303b54;background:#0e1524;color:#fff;font-size:16px;outline:none}
+.wrap{padding:20px 6% 70px;max-width:1300px;margin:auto}
+.categories{display:flex;gap:10px;flex-wrap:wrap;margin:20px 0 28px}
+.pill.active{background:#8b7cff;border-color:#8b7cff}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px}
+.card{background:#0d1422;border:1px solid #1e293d;border-radius:18px;padding:20px;box-shadow:0 12px 35px #0003}
+.tag{font-size:12px;color:#9f94ff;margin-bottom:9px} .card h3{margin:5px 0 12px}
+.prompt{color:#b9c2d2;line-height:1.6;font-size:14px;min-height:110px}
+.actions{display:flex;gap:9px;margin-top:16px} .copy{flex:1;background:#151e31}
+footer{padding:30px 6%;border-top:1px solid #1b2435;color:#8d98aa;text-align:center}
+.empty{text-align:center;color:#9ba6b9;padding:50px}
+.modal{position:fixed;inset:0;background:#0009;display:none;align-items:center;justify-content:center;padding:20px;z-index:10}
+.modal.show{display:flex} .modalbox{width:min(430px,100%);background:#0d1422;border:1px solid #2b3851;border-radius:20px;padding:24px}
+.modalbox input{width:100%;padding:13px;margin:7px 0;border-radius:10px;border:1px solid #2b3851;background:#080e19;color:white}
+@media(max-width:600px){header{padding:16px 4%}nav{display:none}.hero{padding:55px 4% 35px}.wrap{padding:15px 4% 50px}}
+</style>
+</head>
+<body>
+<header><div class="logo">PromptCraft <span>AI</span></div><nav><button onclick="openAuth()">Login / Sign Up</button></nav></header>
+<section class="hero">
+<h1><span class="gradient">Create. Copy. Imagine.</span></h1>
+<p>100 ready-to-use AI prompts for images, videos, characters, cinematic scenes and social media content.</p>
+<input id="search" class="search" placeholder="🔎 Search prompts..." oninput="render()">
+</section>
+<main class="wrap">
+<div id="categories" class="categories"></div>
+<div id="grid" class="grid"></div>
+</main>
+<footer>© 2026 PromptCraft AI · Free prompt library</footer>
+
+<div id="modal" class="modal" onclick="if(event.target===this)closeAuth()">
+<div class="modalbox">
+<h2>Welcome to PromptCraft AI</h2>
+<p style="color:#aeb8ca">Demo login UI. Connect a free authentication provider later for real accounts.</p>
+<input placeholder="Email">
+<input placeholder="Password" type="password">
+<button class="copy" style="width:100%;margin-top:8px" onclick="alert('Demo only — authentication will be connected in the next setup step.')">Continue</button>
+<button class="pill" style="width:100%;margin-top:8px" onclick="closeAuth()">Close</button>
+</div></div>
+
+<script>
+const prompts = [
+  {
+    "id": 1,
+    "category": "AI Image Prompts",
+    "title": "Cinematic Portrait 1",
+    "prompt": "A cinematic portrait of a confident young creator, natural expression, soft rim lighting, realistic skin texture, shallow depth of field, premium editorial photography, 85mm lens, high detail, tasteful composition, no text, no watermark"
+  },
+  {
+    "id": 2,
+    "category": "AI Image Prompts",
+    "title": "Luxury Business Portrait 1",
+    "prompt": "A polished entrepreneur standing in a modern glass office, confident posture, cinematic lighting, realistic photography, subtle reflections, premium corporate atmosphere, tasteful composition, no text, no watermark"
+  },
+  {
+    "id": 3,
+    "category": "AI Image Prompts",
+    "title": "Rainy Street Portrait 1",
+    "prompt": "A person walking through a neon-lit city street after rain, reflections on wet pavement, cinematic atmosphere, realistic photography, dramatic depth, tasteful composition, no text, no watermark"
+  },
+  {
+    "id": 4,
+    "category": "AI Image Prompts",
+    "title": "Golden Hour Portrait 1",
+    "prompt": "A natural portrait during golden hour, warm sunlight, soft background bokeh, realistic skin texture, professional photography, tasteful composition, no text, no watermark"
+  },
+  {
+    "id": 5,
+    "category": "AI Image Prompts",
+    "title": "Futuristic Creator 1",
+    "prompt": "A modern AI creator in a futuristic studio filled with holographic screens, cinematic lighting, realistic details, premium technology aesthetic, tasteful composition, no text, no watermark"
+  },
+  {
+    "id": 6,
+    "category": "AI Image Prompts",
+    "title": "Travel Portrait 1",
+    "prompt": "A traveler standing before a beautiful mountain landscape, natural pose, cinematic composition, realistic photography, atmospheric depth, tasteful composition, no text, no watermark"
+  },
+  {
+    "id": 7,
+    "category": "AI Image Prompts",
+    "title": "Minimal Studio 1",
+    "prompt": "A clean studio portrait with a neutral background, softbox lighting, natural expression, sharp eyes, professional photography, tasteful composition, no text, no watermark"
+  },
+  {
+    "id": 8,
+    "category": "AI Image Prompts",
+    "title": "Fashion Editorial 1",
+    "prompt": "A stylish person in a contemporary outfit on a minimalist editorial set, dramatic soft lighting, magazine photography, realistic textures, tasteful composition, no text, no watermark"
+  },
+  {
+    "id": 9,
+    "category": "AI Image Prompts",
+    "title": "Streetwear Portrait 1",
+    "prompt": "A confident creator in modern streetwear beside an urban wall, moody cinematic lighting, realistic photography, detailed fabric texture, tasteful composition, no text, no watermark"
+  },
+  {
+    "id": 10,
+    "category": "AI Image Prompts",
+    "title": "Dreamy Portrait 1",
+    "prompt": "A peaceful portrait surrounded by soft glowing light and subtle atmospheric haze, natural expression, realistic photography, tasteful composition, no text, no watermark"
+  },
+  {
+    "id": 11,
+    "category": "AI Image Prompts",
+    "title": "Cinematic Portrait 2",
+    "prompt": "A cinematic portrait of a confident young creator, natural expression, soft rim lighting, realistic skin texture, shallow depth of field, premium editorial photography, 85mm lens, high detail, tasteful composition, no text, no watermark"
+  },
+  {
+    "id": 12,
+    "category": "AI Image Prompts",
+    "title": "Luxury Business Portrait 2",
+    "prompt": "A polished entrepreneur standing in a modern glass office, confident posture, cinematic lighting, realistic photography, subtle reflections, premium corporate atmosphere, tasteful composition, no text, no watermark"
+  },
+  {
+    "id": 13,
+    "category": "AI Image Prompts",
+    "title": "Rainy Street Portrait 2",
+    "prompt": "A person walking through a neon-lit city street after rain, reflections on wet pavement, cinematic atmosphere, realistic photography, dramatic depth, tasteful composition, no text, no watermark"
+  },
+  {
+    "id": 14,
+    "category": "AI Image Prompts",
+    "title": "Golden Hour Portrait 2",
+    "prompt": "A natural portrait during golden hour, warm sunlight, soft background bokeh, realistic skin texture, professional photography, tasteful composition, no text, no watermark"
+  },
+  {
+    "id": 15,
+    "category": "AI Image Prompts",
+    "title": "Futuristic Creator 2",
+    "prompt": "A modern AI creator in a futuristic studio filled with holographic screens, cinematic lighting, realistic details, premium technology aesthetic, tasteful composition, no text, no watermark"
+  },
+  {
+    "id": 16,
+    "category": "AI Image Prompts",
+    "title": "Travel Portrait 2",
+    "prompt": "A traveler standing before a beautiful mountain landscape, natural pose, cinematic composition, realistic photography, atmospheric depth, tasteful composition, no text, no watermark"
+  },
+  {
+    "id": 17,
+    "category": "AI Image Prompts",
+    "title": "Minimal Studio 2",
+    "prompt": "A clean studio portrait with a neutral background, softbox lighting, natural expression, sharp eyes, professional photography, tasteful composition, no text, no watermark"
+  },
+  {
+    "id": 18,
+    "category": "AI Image Prompts",
+    "title": "Fashion Editorial 2",
+    "prompt": "A stylish person in a contemporary outfit on a minimalist editorial set, dramatic soft lighting, magazine photography, realistic textures, tasteful composition, no text, no watermark"
+  },
+  {
+    "id": 19,
+    "category": "AI Image Prompts",
+    "title": "Streetwear Portrait 2",
+    "prompt": "A confident creator in modern streetwear beside an urban wall, moody cinematic lighting, realistic photography, detailed fabric texture, tasteful composition, no text, no watermark"
+  },
+  {
+    "id": 20,
+    "category": "AI Image Prompts",
+    "title": "Dreamy Portrait 2",
+    "prompt": "A peaceful portrait surrounded by soft glowing light and subtle atmospheric haze, natural expression, realistic photography, tasteful composition, no text, no watermark"
+  },
+  {
+    "id": 21,
+    "category": "AI Image Prompts",
+    "title": "Cinematic Portrait 3",
+    "prompt": "A cinematic portrait of a confident young creator, natural expression, soft rim lighting, realistic skin texture, shallow depth of field, premium editorial photography, 85mm lens, high detail, tasteful composition, no text, no watermark"
+  },
+  {
+    "id": 22,
+    "category": "AI Image Prompts",
+    "title": "Luxury Business Portrait 3",
+    "prompt": "A polished entrepreneur standing in a modern glass office, confident posture, cinematic lighting, realistic photography, subtle reflections, premium corporate atmosphere, tasteful composition, no text, no watermark"
+  },
+  {
+    "id": 23,
+    "category": "AI Image Prompts",
+    "title": "Rainy Street Portrait 3",
+    "prompt": "A person walking through a neon-lit city street after rain, reflections on wet pavement, cinematic atmosphere, realistic photography, dramatic depth, tasteful composition, no text, no watermark"
+  },
+  {
+    "id": 24,
+    "category": "AI Image Prompts",
+    "title": "Golden Hour Portrait 3",
+    "prompt": "A natural portrait during golden hour, warm sunlight, soft background bokeh, realistic skin texture, professional photography, tasteful composition, no text, no watermark"
+  },
+  {
+    "id": 25,
+    "category": "AI Image Prompts",
+    "title": "Futuristic Creator 3",
+    "prompt": "A modern AI creator in a futuristic studio filled with holographic screens, cinematic lighting, realistic details, premium technology aesthetic, tasteful composition, no text, no watermark"
+  },
+  {
+    "id": 26,
+    "category": "AI Image Prompts",
+    "title": "Travel Portrait 3",
+    "prompt": "A traveler standing before a beautiful mountain landscape, natural pose, cinematic composition, realistic photography, atmospheric depth, tasteful composition, no text, no watermark"
+  },
+  {
+    "id": 27,
+    "category": "AI Image Prompts",
+    "title": "Minimal Studio 3",
+    "prompt": "A clean studio portrait with a neutral background, softbox lighting, natural expression, sharp eyes, professional photography, tasteful composition, no text, no watermark"
+  },
+  {
+    "id": 28,
+    "category": "AI Image Prompts",
+    "title": "Fashion Editorial 3",
+    "prompt": "A stylish person in a contemporary outfit on a minimalist editorial set, dramatic soft lighting, magazine photography, realistic textures, tasteful composition, no text, no watermark"
+  },
+  {
+    "id": 29,
+    "category": "AI Image Prompts",
+    "title": "Streetwear Portrait 3",
+    "prompt": "A confident creator in modern streetwear beside an urban wall, moody cinematic lighting, realistic photography, detailed fabric texture, tasteful composition, no text, no watermark"
+  },
+  {
+    "id": 30,
+    "category": "AI Image Prompts",
+    "title": "Dreamy Portrait 3",
+    "prompt": "A peaceful portrait surrounded by soft glowing light and subtle atmospheric haze, natural expression, realistic photography, tasteful composition, no text, no watermark"
+  },
+  {
+    "id": 31,
+    "category": "AI Image Prompts",
+    "title": "Cinematic Portrait 4",
+    "prompt": "A cinematic portrait of a confident young creator, natural expression, soft rim lighting, realistic skin texture, shallow depth of field, premium editorial photography, 85mm lens, high detail, tasteful composition, no text, no watermark"
+  },
+  {
+    "id": 32,
+    "category": "AI Image Prompts",
+    "title": "Luxury Business Portrait 4",
+    "prompt": "A polished entrepreneur standing in a modern glass office, confident posture, cinematic lighting, realistic photography, subtle reflections, premium corporate atmosphere, tasteful composition, no text, no watermark"
+  },
+  {
+    "id": 33,
+    "category": "AI Image Prompts",
+    "title": "Rainy Street Portrait 4",
+    "prompt": "A person walking through a neon-lit city street after rain, reflections on wet pavement, cinematic atmosphere, realistic photography, dramatic depth, tasteful composition, no text, no watermark"
+  },
+  {
+    "id": 34,
+    "category": "AI Image Prompts",
+    "title": "Golden Hour Portrait 4",
+    "prompt": "A natural portrait during golden hour, warm sunlight, soft background bokeh, realistic skin texture, professional photography, tasteful composition, no text, no watermark"
+  },
+  {
+    "id": 35,
+    "category": "AI Image Prompts",
+    "title": "Futuristic Creator 4",
+    "prompt": "A modern AI creator in a futuristic studio filled with holographic screens, cinematic lighting, realistic details, premium technology aesthetic, tasteful composition, no text, no watermark"
+  },
+  {
+    "id": 36,
+    "category": "AI Image Prompts",
+    "title": "Travel Portrait 4",
+    "prompt": "A traveler standing before a beautiful mountain landscape, natural pose, cinematic composition, realistic photography, atmospheric depth, tasteful composition, no text, no watermark"
+  },
+  {
+    "id": 37,
+    "category": "AI Image Prompts",
+    "title": "Minimal Studio 4",
+    "prompt": "A clean studio portrait with a neutral background, softbox lighting, natural expression, sharp eyes, professional photography, tasteful composition, no text, no watermark"
+  },
+  {
+    "id": 38,
+    "category": "AI Image Prompts",
+    "title": "Fashion Editorial 4",
+    "prompt": "A stylish person in a contemporary outfit on a minimalist editorial set, dramatic soft lighting, magazine photography, realistic textures, tasteful composition, no text, no watermark"
+  },
+  {
+    "id": 39,
+    "category": "AI Image Prompts",
+    "title": "Streetwear Portrait 4",
+    "prompt": "A confident creator in modern streetwear beside an urban wall, moody cinematic lighting, realistic photography, detailed fabric texture, tasteful composition, no text, no watermark"
+  },
+  {
+    "id": 40,
+    "category": "AI Image Prompts",
+    "title": "Dreamy Portrait 4",
+    "prompt": "A peaceful portrait surrounded by soft glowing light and subtle atmospheric haze, natural expression, realistic photography, tasteful composition, no text, no watermark"
+  },
+  {
+    "id": 41,
+    "category": "AI Video Prompts",
+    "title": "Cinematic Product Reveal 1",
+    "prompt": "A premium product slowly revealed on a dark studio table, camera starts wide and smoothly pushes in, soft volumetric light, realistic reflections, cinematic commercial style, consistent subject and environment, no sudden character changes"
+  },
+  {
+    "id": 42,
+    "category": "AI Video Prompts",
+    "title": "Rainy City Walk 1",
+    "prompt": "A person walking through a rainy city at night, camera tracking smoothly from the side, wet street reflections, natural movement, cinematic color grading, consistent subject and environment, no sudden character changes"
+  },
+  {
+    "id": 43,
+    "category": "AI Video Prompts",
+    "title": "Morning Coffee Scene 1",
+    "prompt": "Close-up of coffee being prepared in a cozy kitchen, gentle camera movement, steam rising naturally, warm morning light, realistic commercial film, consistent subject and environment, no sudden character changes"
+  },
+  {
+    "id": 44,
+    "category": "AI Video Prompts",
+    "title": "Mountain Drone Shot 1",
+    "prompt": "A cinematic aerial camera glides over a dramatic mountain valley at sunrise, clouds moving naturally, realistic landscape motion, smooth transition, consistent subject and environment, no sudden character changes"
+  },
+  {
+    "id": 45,
+    "category": "AI Video Prompts",
+    "title": "Tech Studio 1",
+    "prompt": "A creator working in a futuristic studio, camera slowly circles the subject, glowing screens in the background, subtle realistic motion, premium technology commercial, consistent subject and environment, no sudden character changes"
+  },
+  {
+    "id": 46,
+    "category": "AI Video Prompts",
+    "title": "Fashion Walk 1",
+    "prompt": "A stylish person walks confidently through a modern architectural space, smooth tracking camera, natural fabric movement, editorial fashion film, consistent subject and environment, no sudden character changes"
+  },
+  {
+    "id": 47,
+    "category": "AI Video Prompts",
+    "title": "Travel Transition 1",
+    "prompt": "A traveler looks toward a scenic landscape, camera moves behind them and reveals the full environment, smooth cinematic transition, realistic motion, consistent subject and environment, no sudden character changes"
+  },
+  {
+    "id": 48,
+    "category": "AI Video Prompts",
+    "title": "Sports Intro 1",
+    "prompt": "An athlete prepares for a training session, dynamic close-ups followed by a smooth wide shot, realistic movement, energetic cinematic lighting, consistent subject and environment, no sudden character changes"
+  },
+  {
+    "id": 49,
+    "category": "AI Video Prompts",
+    "title": "Food Commercial 1",
+    "prompt": "A fresh dish is presented on a table, camera makes a slow orbit, steam and small natural movements, crisp food textures, premium commercial style, consistent subject and environment, no sudden character changes"
+  },
+  {
+    "id": 50,
+    "category": "AI Video Prompts",
+    "title": "Studio Interview 1",
+    "prompt": "A creator speaks naturally to camera in a clean studio, subtle camera push-in, soft key light, realistic facial motion, professional documentary style, consistent subject and environment, no sudden character changes"
+  },
+  {
+    "id": 51,
+    "category": "AI Video Prompts",
+    "title": "Cinematic Product Reveal 2",
+    "prompt": "A premium product slowly revealed on a dark studio table, camera starts wide and smoothly pushes in, soft volumetric light, realistic reflections, cinematic commercial style, consistent subject and environment, no sudden character changes"
+  },
+  {
+    "id": 52,
+    "category": "AI Video Prompts",
+    "title": "Rainy City Walk 2",
+    "prompt": "A person walking through a rainy city at night, camera tracking smoothly from the side, wet street reflections, natural movement, cinematic color grading, consistent subject and environment, no sudden character changes"
+  },
+  {
+    "id": 53,
+    "category": "AI Video Prompts",
+    "title": "Morning Coffee Scene 2",
+    "prompt": "Close-up of coffee being prepared in a cozy kitchen, gentle camera movement, steam rising naturally, warm morning light, realistic commercial film, consistent subject and environment, no sudden character changes"
+  },
+  {
+    "id": 54,
+    "category": "AI Video Prompts",
+    "title": "Mountain Drone Shot 2",
+    "prompt": "A cinematic aerial camera glides over a dramatic mountain valley at sunrise, clouds moving naturally, realistic landscape motion, smooth transition, consistent subject and environment, no sudden character changes"
+  },
+  {
+    "id": 55,
+    "category": "AI Video Prompts",
+    "title": "Tech Studio 2",
+    "prompt": "A creator working in a futuristic studio, camera slowly circles the subject, glowing screens in the background, subtle realistic motion, premium technology commercial, consistent subject and environment, no sudden character changes"
+  },
+  {
+    "id": 56,
+    "category": "AI Video Prompts",
+    "title": "Fashion Walk 2",
+    "prompt": "A stylish person walks confidently through a modern architectural space, smooth tracking camera, natural fabric movement, editorial fashion film, consistent subject and environment, no sudden character changes"
+  },
+  {
+    "id": 57,
+    "category": "AI Video Prompts",
+    "title": "Travel Transition 2",
+    "prompt": "A traveler looks toward a scenic landscape, camera moves behind them and reveals the full environment, smooth cinematic transition, realistic motion, consistent subject and environment, no sudden character changes"
+  },
+  {
+    "id": 58,
+    "category": "AI Video Prompts",
+    "title": "Sports Intro 2",
+    "prompt": "An athlete prepares for a training session, dynamic close-ups followed by a smooth wide shot, realistic movement, energetic cinematic lighting, consistent subject and environment, no sudden character changes"
+  },
+  {
+    "id": 59,
+    "category": "AI Video Prompts",
+    "title": "Food Commercial 2",
+    "prompt": "A fresh dish is presented on a table, camera makes a slow orbit, steam and small natural movements, crisp food textures, premium commercial style, consistent subject and environment, no sudden character changes"
+  },
+  {
+    "id": 60,
+    "category": "AI Video Prompts",
+    "title": "Studio Interview 2",
+    "prompt": "A creator speaks naturally to camera in a clean studio, subtle camera push-in, soft key light, realistic facial motion, professional documentary style, consistent subject and environment, no sudden character changes"
+  },
+  {
+    "id": 61,
+    "category": "AI Video Prompts",
+    "title": "Cinematic Product Reveal 3",
+    "prompt": "A premium product slowly revealed on a dark studio table, camera starts wide and smoothly pushes in, soft volumetric light, realistic reflections, cinematic commercial style, consistent subject and environment, no sudden character changes"
+  },
+  {
+    "id": 62,
+    "category": "AI Video Prompts",
+    "title": "Rainy City Walk 3",
+    "prompt": "A person walking through a rainy city at night, camera tracking smoothly from the side, wet street reflections, natural movement, cinematic color grading, consistent subject and environment, no sudden character changes"
+  },
+  {
+    "id": 63,
+    "category": "AI Video Prompts",
+    "title": "Morning Coffee Scene 3",
+    "prompt": "Close-up of coffee being prepared in a cozy kitchen, gentle camera movement, steam rising naturally, warm morning light, realistic commercial film, consistent subject and environment, no sudden character changes"
+  },
+  {
+    "id": 64,
+    "category": "AI Video Prompts",
+    "title": "Mountain Drone Shot 3",
+    "prompt": "A cinematic aerial camera glides over a dramatic mountain valley at sunrise, clouds moving naturally, realistic landscape motion, smooth transition, consistent subject and environment, no sudden character changes"
+  },
+  {
+    "id": 65,
+    "category": "AI Video Prompts",
+    "title": "Tech Studio 3",
+    "prompt": "A creator working in a futuristic studio, camera slowly circles the subject, glowing screens in the background, subtle realistic motion, premium technology commercial, consistent subject and environment, no sudden character changes"
+  },
+  {
+    "id": 66,
+    "category": "AI Video Prompts",
+    "title": "Fashion Walk 3",
+    "prompt": "A stylish person walks confidently through a modern architectural space, smooth tracking camera, natural fabric movement, editorial fashion film, consistent subject and environment, no sudden character changes"
+  },
+  {
+    "id": 67,
+    "category": "AI Video Prompts",
+    "title": "Travel Transition 3",
+    "prompt": "A traveler looks toward a scenic landscape, camera moves behind them and reveals the full environment, smooth cinematic transition, realistic motion, consistent subject and environment, no sudden character changes"
+  },
+  {
+    "id": 68,
+    "category": "AI Video Prompts",
+    "title": "Sports Intro 3",
+    "prompt": "An athlete prepares for a training session, dynamic close-ups followed by a smooth wide shot, realistic movement, energetic cinematic lighting, consistent subject and environment, no sudden character changes"
+  },
+  {
+    "id": 69,
+    "category": "AI Video Prompts",
+    "title": "Food Commercial 3",
+    "prompt": "A fresh dish is presented on a table, camera makes a slow orbit, steam and small natural movements, crisp food textures, premium commercial style, consistent subject and environment, no sudden character changes"
+  },
+  {
+    "id": 70,
+    "category": "AI Video Prompts",
+    "title": "Studio Interview 3",
+    "prompt": "A creator speaks naturally to camera in a clean studio, subtle camera push-in, soft key light, realistic facial motion, professional documentary style, consistent subject and environment, no sudden character changes"
+  },
+  {
+    "id": 71,
+    "category": "Character Prompts",
+    "title": "Professional Creator",
+    "prompt": "A friendly professional AI content creator, modern casual outfit, confident but approachable expression, realistic proportions, clean studio portrait"
+  },
+  {
+    "id": 72,
+    "category": "Character Prompts",
+    "title": "Wellness Coach",
+    "prompt": "A professional wellness coach in a bright modern wellness studio, friendly expression, confident posture, realistic photography"
+  },
+  {
+    "id": 73,
+    "category": "Character Prompts",
+    "title": "Young Inventor",
+    "prompt": "A creative young inventor in a compact futuristic workshop, curious expression, practical clothing, cinematic character design"
+  },
+  {
+    "id": 74,
+    "category": "Character Prompts",
+    "title": "Adventure Explorer",
+    "prompt": "A brave adventure explorer with practical travel clothing and a backpack, standing in a mountain environment, detailed realistic character design"
+  },
+  {
+    "id": 75,
+    "category": "Character Prompts",
+    "title": "Animated Hero",
+    "prompt": "A charming 2D animated hero with expressive eyes, clean shapes, appealing silhouette, vibrant storybook character design"
+  },
+  {
+    "id": 76,
+    "category": "Character Prompts",
+    "title": "Business Mentor",
+    "prompt": "A polished business mentor in a modern office, calm confident expression, professional wardrobe, realistic character portrait"
+  },
+  {
+    "id": 77,
+    "category": "Character Prompts",
+    "title": "Tech Student",
+    "prompt": "A curious student with a laptop in a modern study space, friendly expression, contemporary clothing, realistic character design"
+  },
+  {
+    "id": 78,
+    "category": "Character Prompts",
+    "title": "Chef Character",
+    "prompt": "A cheerful chef in a bright professional kitchen, clean uniform, expressive face, appealing animated character design"
+  },
+  {
+    "id": 79,
+    "category": "Character Prompts",
+    "title": "Photographer",
+    "prompt": "A creative photographer carrying a camera in an urban setting, relaxed confident expression, realistic character design"
+  },
+  {
+    "id": 80,
+    "category": "Character Prompts",
+    "title": "Traveler",
+    "prompt": "A cheerful traveler with a compact backpack, casual clothing, scenic travel environment, cinematic realistic character design"
+  },
+  {
+    "id": 81,
+    "category": "Background Prompts",
+    "title": "Neon City",
+    "prompt": "A futuristic city street at night, glowing signs, wet pavement reflections, atmospheric haze, cinematic depth"
+  },
+  {
+    "id": 82,
+    "category": "Background Prompts",
+    "title": "Modern Office",
+    "prompt": "A bright modern office with glass walls, clean desks, plants, soft daylight, premium realistic interior"
+  },
+  {
+    "id": 83,
+    "category": "Background Prompts",
+    "title": "Cozy Bedroom",
+    "prompt": "A cozy modern bedroom with warm lamps, soft bedding, tasteful decor, cinematic evening atmosphere"
+  },
+  {
+    "id": 84,
+    "category": "Background Prompts",
+    "title": "Mountain Valley",
+    "prompt": "A vast mountain valley at sunrise, layered peaks, soft clouds, natural atmospheric perspective"
+  },
+  {
+    "id": 85,
+    "category": "Background Prompts",
+    "title": "Futuristic Lab",
+    "prompt": "A clean futuristic laboratory with glowing panels, glass surfaces, subtle blue-white lighting, high detail"
+  },
+  {
+    "id": 86,
+    "category": "Background Prompts",
+    "title": "Tropical Beach",
+    "prompt": "A peaceful tropical beach with clear water, palm trees, soft sunset light, realistic environment"
+  },
+  {
+    "id": 87,
+    "category": "Background Prompts",
+    "title": "Indian Street",
+    "prompt": "A lively Indian street market with colorful storefronts, natural crowd movement, realistic documentary atmosphere"
+  },
+  {
+    "id": 88,
+    "category": "Background Prompts",
+    "title": "Minimal Studio",
+    "prompt": "A seamless neutral studio background with soft shadows and controlled professional lighting"
+  },
+  {
+    "id": 89,
+    "category": "Background Prompts",
+    "title": "Library",
+    "prompt": "A grand modern library with tall shelves, warm reading lights, elegant architecture, cinematic depth"
+  },
+  {
+    "id": 90,
+    "category": "Background Prompts",
+    "title": "Forest",
+    "prompt": "A lush green forest with soft rays of sunlight filtering through trees, misty atmosphere, realistic nature"
+  },
+  {
+    "id": 91,
+    "category": "Cinematic Prompts",
+    "title": "Epic Opening",
+    "prompt": "Wide establishing shot of a vast landscape, slow cinematic camera movement, dramatic natural light, atmospheric depth"
+  },
+  {
+    "id": 92,
+    "category": "Cinematic Prompts",
+    "title": "Hero Entrance",
+    "prompt": "A character enters a large environment, camera starts behind foreground elements and reveals the subject smoothly, cinematic composition"
+  },
+  {
+    "id": 93,
+    "category": "Cinematic Prompts",
+    "title": "Slow Push In",
+    "prompt": "Camera slowly pushes toward the subject while the background falls gently out of focus, controlled cinematic movement"
+  },
+  {
+    "id": 94,
+    "category": "Cinematic Prompts",
+    "title": "Top Down Reveal",
+    "prompt": "Camera begins directly overhead and smoothly descends to reveal the complete scene, realistic motion and lighting"
+  },
+  {
+    "id": 95,
+    "category": "Cinematic Prompts",
+    "title": "Tracking Shot",
+    "prompt": "Camera tracks alongside a moving subject at a steady pace, natural parallax, consistent framing, cinematic realism"
+  },
+  {
+    "id": 96,
+    "category": "YouTube / Reels Prompts",
+    "title": "Motivational Reel",
+    "prompt": "Fast-paced cinematic vertical video for a motivational message, strong opening visual, smooth transitions, readable empty space for captions"
+  },
+  {
+    "id": 97,
+    "category": "YouTube / Reels Prompts",
+    "title": "Product Reel",
+    "prompt": "Vertical product showcase with three smooth shots, close-up details, clean transitions, premium commercial lighting"
+  },
+  {
+    "id": 98,
+    "category": "YouTube / Reels Prompts",
+    "title": "Travel Reel",
+    "prompt": "Vertical travel montage with scenic establishing shot, walking shot, detail shot, smooth cinematic transitions"
+  },
+  {
+    "id": 99,
+    "category": "YouTube / Reels Prompts",
+    "title": "AI Tips Reel",
+    "prompt": "Modern vertical educational video with a creator speaking to camera, clean background, subtle motion graphics space"
+  },
+  {
+    "id": 100,
+    "category": "YouTube / Reels Prompts",
+    "title": "Before After Reel",
+    "prompt": "Vertical transformation concept using a clean before shot, smooth transition, and polished after shot"
+  }
+];
+const cats = ["All",...new Set(prompts.map(x=>x.category))];
+let selected="All";
+const favorites = JSON.parse(localStorage.getItem("pc_favorites")||"[]");
+
+function renderCats(){
+ const el=document.getElementById("categories");
+ el.innerHTML=cats.map(c=>`<button class="pill ${c===selected?'active':''}" onclick="selected='${c.replaceAll("'","\\'")}';renderCats();render()">${c}</button>`).join("");
+}
+function render(){
+ const q=document.getElementById("search").value.toLowerCase().trim();
+ const list=prompts.filter(x=>(selected==="All"||x.category===selected)&&
+   (!q||(x.title+" "+x.prompt+" "+x.category).toLowerCase().includes(q)));
+ const grid=document.getElementById("grid");
+ if(!list.length){grid.innerHTML='<div class="empty">No prompts found.</div>';return;}
+ grid.innerHTML=list.map(x=>`<article class="card">
+ <div class="tag">${x.category}</div><h3>${x.title}</h3>
+ <div class="prompt">${x.prompt}</div>
+ <div class="actions">
+ <button class="copy" onclick='copyPrompt(${JSON.stringify(x.prompt)})'>📋 Copy Prompt</button>
+ <button class="pill" onclick="toggleFav(${x.id})">${favorites.includes(x.id)?"❤️":"♡"}</button>
+ </div></article>`).join("");
+}
+function copyPrompt(t){navigator.clipboard.writeText(t);alert("Prompt copied!");}
+function toggleFav(id){const i=favorites.indexOf(id); if(i>=0)favorites.splice(i,1);else favorites.push(id);localStorage.setItem("pc_favorites",JSON.stringify(favorites));render();}
+function openAuth(){document.getElementById("modal").classList.add("show")}
+function closeAuth(){document.getElementById("modal").classList.remove("show")}
+renderCats();render();
+</script>
+</body></html>
